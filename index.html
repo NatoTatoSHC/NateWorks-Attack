@@ -1,0 +1,342 @@
+<html>
+    <head>
+        <title id="tit">prod vers</title>
+    </head>
+    <body style="font-size:25;">
+        <script>
+            //CONST
+            var GROUND_Y = 460;
+            var YEAR = Date().split(" ")[3];
+            var COPY_YEAR = 2025;
+
+            Date.prototype.getWeek = function () {
+                var target  = new Date(this.valueOf());
+                var dayNr   = (this.getDay() + 6) % 7;
+                target.setDate(target.getDate() - dayNr + 3);
+                var firstThursday = target.valueOf();
+                target.setMonth(0, 1);
+                if (target.getDay() != 4) {
+                    target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+                }
+                return 1 + Math.ceil((firstThursday - target) / 604800000);
+            }
+
+            var d= new Date();
+            var WEEK = d.getWeek();
+            var SHORT_YEAR = YEAR.charAt(2)+YEAR.charAt(3);
+            var SNAPEND = "b";
+            var MAX_HEALTH = 100;
+            //INFO
+            var company = "NateWorks";
+            var product = "NateWorks Attack";
+            var version = "vAlpha 2.0";
+            var snapshot = "Snapshot "+SHORT_YEAR+"w"+WEEK+SNAPEND;
+            var versionName = "The Evvildoers Update";
+            var snapshotName = "The Goal Snapshot";
+            //location
+            var HEALTHX = 1000-280;
+            var HEALTHY = 0;
+            var HEALTH_WIDTH = 280;
+            var HEALTH_HEIGHT = 20;
+            var END_X = 1000;
+            //special cases
+            //sizes
+            var CANV_WIDTH = 1000;
+            var CANV_HEIGHT = 500;
+            var Player_Width = 100;
+            var Player_Height = 74;
+            var BG_WIDTH = 1000;
+            var BUSH_SIZE = 32;
+            var BUSH_SIZE_FULL = 100;
+            var HACKER_WIDTH = 64;
+            var HACKER_HEIGHT = 80;
+            //speeds
+            var PLAYER_X_SPEED = 4;
+            var PLAYER_Y_ACCEL = 1
+            var PLAYER_JUMP_SPEED = 20;
+            var HACKER_X_SPEED = 4;
+            
+            //animation
+            var PLAYER_FRAMES = 6;
+            var PLAYER_ANIMATION_SPEED = 3;
+
+            var HACKER_FRAMES = 5;
+            var HACKER_ANIMATION_SPEED = 3;
+
+            //min-max
+            var BUSH_MIN = 5;
+            var MIN_HACKER_DIST = 500;
+            var MAX_HACKER_DIST = 600;
+            var MAX_HACKERS = 5;
+
+            //bound
+            var PLAYER_BOUND = {
+                x_offset: 45,
+                y_offset: 12.5,
+                width: 30,
+                height: 61.5
+            }
+            var HACKER_BOUND = {
+                x_offset: 12.5,
+                y_offset: 0,
+                width: 37.5,
+                height: 80
+            }
+
+            //SETUP
+            //site
+            
+
+            
+            //vars
+            var PlayerX = 150;
+            var PlayerY = GROUND_Y - Player_Height;
+            var HackerX = 1000;
+            var HackerY = GROUND_Y - HACKER_HEIGHT;
+            var ticks = 0;
+            var playerFrame = 0;
+            var PLAYER_Y_SPEED = 0;
+            var isJumping = false;
+            var isInAir = false;
+            var cameraX = 0;
+            var isSnapshot = true;
+            var hitboxes = false;
+            var health = MAX_HEALTH;
+
+            var updateuse = "";
+            var updateusename = "";
+            if (!isSnapshot) {
+                updateuse = version;
+                updateusename = versionName;
+            } else {
+                updateuse = snapshot;
+                updateusename = snapshotName
+            }
+            document.getElementById("tit").innerHTML = product + " " + updateuse;
+            
+
+            var hackerFrame = 0;
+            //bushes
+            var bushes = [];
+            var bushX = 0;
+            for(var i = 0; i < BUSH_MIN; i++) {
+                bushes.push({
+                    x: bushX,
+                    y: 100 + Math.random() * 20
+
+                });
+                bushX += 150 + Math.random() * 200;
+            }
+            //hackers
+            var hackers = [{
+                x: 1000,
+                y: GROUND_Y-HACKER_HEIGHT
+            },{
+                x: 1700,
+                y: GROUND_Y-HACKER_HEIGHT
+            }];
+            //images
+            var bg = new Image();
+            bg.src = "bg.png";
+            var playersheet = new Image();
+            playersheet.src = "player.png";
+            var bushimg = new Image();
+            bushimg.src = "bush.png";
+            var hackimg = new Image();
+            hackimg.src = "hacker.png";
+            var buildimg = new Image();
+            buildimg.src = "nateworks.png";
+
+            
+            var title = document.createElement("h1");
+            title.innerHTML = product;
+            document.body.appendChild(title);
+            var canvas = document.createElement("canvas");
+            canvas.width = CANV_WIDTH;
+            canvas.height = CANV_HEIGHT;
+            document.body.appendChild(canvas);
+            var c = canvas.getContext("2d");
+            var versdis = document.createElement("p");
+            versdis.innerHTML = updateuse + "&#2;|&#2;copyright&copy;"+COPY_YEAR+" "+company+"&#2;|&#2;"+updateusename;
+            versdis.style = "font-size:15;";
+            document.body.appendChild(versdis);
+            
+
+            window.addEventListener("load", start);
+            window.addEventListener("keydown", keyDown);
+            window.addEventListener("keyup", keyUp);
+
+            //jump
+            function keyDown(event) {
+                if (event.keyCode == 32) {
+                    isJumping = true;
+                }
+                if (event.keyCode == 72 && hitboxes) {
+                    hitboxes = false;
+                } else if (event.keyCode == 72 && !hitboxes) {
+                    hitboxes = true;
+                }
+            }
+            function keyUp(event) {
+                if (event.keyCode == 32) {
+                    isJumping = false;
+                }
+            }
+
+            //start
+            function start() {
+                window.requestAnimationFrame(mainloop);
+            }
+            //MAIN
+            function mainloop() {
+                update();
+                draw();
+                window.requestAnimationFrame(mainloop);
+            }
+            //UPDATE
+            function update() {
+                if (health <= 0) {
+                    return undefined;
+                }
+                //player
+                PlayerX += PLAYER_X_SPEED;
+                console.log(PlayerX);
+                PlayerY += PLAYER_Y_SPEED;
+                //animation
+                ticks += 1;
+                if ((ticks % PLAYER_ANIMATION_SPEED) == 0) {
+                    playerFrame += 1;
+                    if((playerFrame % PLAYER_FRAMES) == 0) {
+                        playerFrame = 0;
+                    }
+                }
+                if ((ticks % HACKER_ANIMATION_SPEED) == 0) {
+                    hackerFrame += 1;
+                    if ((hackerFrame % HACKER_FRAMES) == 0) {
+                        hackerFrame = 0;
+                    }
+                }
+                //gravity
+                PLAYER_Y_SPEED += PLAYER_Y_ACCEL;
+                if (PlayerY > (GROUND_Y - Player_Height)) {
+                    PlayerY = GROUND_Y - Player_Height;
+                    PLAYER_Y_SPEED = 0;
+                    isInAir = false;
+                }
+
+                //jump
+                if (isJumping && !isInAir) {
+                    PLAYER_Y_SPEED = -PLAYER_JUMP_SPEED;
+                    isInAir = true;
+                }
+                //follow
+                cameraX = PlayerX - 150;
+
+                //new bush
+                for(var i = 0; i < bushes.length; i++) {
+                    if ((bushes[i].x - cameraX) < -(CANV_WIDTH/5)) {
+                        bushes[i].x += (1.25 * CANV_WIDTH) + 150;
+                    }
+                }
+
+                //colide
+                updateHackers();
+                function updateHackers() {
+                    for(var i = 0; i < hackers.length; i++) {
+                        hackers[i].x -= HACKER_X_SPEED;
+                        if (objectsCollide(
+                            PlayerX+PLAYER_BOUND.x_offset-cameraX,
+                            PlayerY+PLAYER_BOUND.y_offset,
+                            PLAYER_BOUND.width,
+                            PLAYER_BOUND.height,
+                            hackers[i].x+HACKER_BOUND.x_offset-cameraX,
+                            hackers[i].y+HACKER_BOUND.y_offset,
+                            HACKER_BOUND.width,
+                            HACKER_BOUND.height
+
+                        )) {
+                            health -= 1;
+                        }
+                        if (hackers[i].x < (cameraX - HACKER_WIDTH)) {
+                            hackers = hackers.splice(1, hackers.length - 1);
+                        }
+                    }
+                    while ((hackers.length < MAX_HACKERS) && !((PlayerX/100).toFixed(0) > END_X)) {
+                        var oldhackerX = hackers[hackers.length - 1].x;
+                        var newhacker = {
+                            x: oldhackerX + MIN_HACKER_DIST + Math.random() * (MAX_HACKER_DIST - MIN_HACKER_DIST),
+                            y: GROUND_Y - HACKER_HEIGHT
+                        };
+                        hackers.push(newhacker);
+                    }
+                }
+                function sidesAreColliding(Obj1_LEFT, Obj1_RIGHT, Obj2_LEFT, Obj2_RIGHT) {
+                    if (((Obj1_RIGHT >= Obj2_LEFT) && (Obj1_RIGHT <= Obj2_RIGHT)) || ((Obj1_LEFT >= Obj2_LEFT) && (Obj1_LEFT <= Obj2_RIGHT)) ) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+                function objectsCollide(obj1X, obj1Y, obj1W, obj1H, obj2X, obj2Y, obj2W, obj2H) {
+                    var PLAYER_LEFT_SIDE = PlayerX+PLAYER_BOUND.x_offset-cameraX;
+                    var PLAYER_RIGHT_SIDE = PlayerX+PLAYER_BOUND.x_offset+PLAYER_BOUND.width-cameraX;
+                    var HACKER_LEFT_SIDE = HackerX+HACKER_BOUND.x_offset-cameraX;
+                    var HACKER_RIGHT_SIDE = HackerX+HACKER_BOUND.x_offset+HACKER_BOUND.width-cameraX;
+                    var alongX = sidesAreColliding(obj1X, obj1X+obj1W, obj2X, obj2X+obj2W);
+                    var alongY = sidesAreColliding(obj1Y, obj1Y+obj1H, obj2Y, obj2Y+obj2H);
+                    return alongX && alongY;
+                }
+                
+                
+                
+            }
+            //DRAW
+            function draw() {
+                //border
+                c.fillStyle = "Black";
+                c.strokeRect(0, 0, CANV_WIDTH, CANV_HEIGHT);
+                //background
+                var BGX = -(cameraX % BG_WIDTH);
+                c.drawImage(bg, BGX, 0);
+                c.drawImage(bg, BGX + BG_WIDTH, 0);
+                //ground
+                c.fillStyle = "ForestGreen";
+                c.fillRect(0, GROUND_Y-40, CANV_WIDTH, 80);
+                //bush
+                for(var i = 0; i < bushes.length; i++) {
+                    c.drawImage(bushimg, 0, 0, BUSH_SIZE, BUSH_SIZE, bushes[i].x - cameraX, GROUND_Y - bushes[0].y, BUSH_SIZE_FULL, BUSH_SIZE_FULL);
+                }
+                //nateworks
+                //c.drawImage(buildimg, 0, 0, 32, 32, 0-cameraX, GROUND_Y-200, 200, 200)
+                //player
+                c.drawImage(playersheet, playerFrame * 50, 0, 50, 37, PlayerX - cameraX, PlayerY, Player_Width, Player_Height);
+                if (hitboxes) {
+                    c.strokeStyle = "blue";
+                    c.strokeRect(PlayerX+PLAYER_BOUND.x_offset-cameraX, PlayerY+PLAYER_BOUND.y_offset, PLAYER_BOUND.width, PLAYER_BOUND.height);
+                }
+                //hacker
+                for(var i = 0; i < hackers.length; i++) {
+                    c.drawImage(hackimg, hackerFrame * 16, 0, 16, 20, hackers[i].x - cameraX, hackers[i].y, HACKER_WIDTH, HACKER_HEIGHT);
+                    if (hitboxes) {
+                        c.strokeStyle = "blue";
+                        c.strokeRect(hackers[i].x+HACKER_BOUND.x_offset-cameraX, hackers[i].y+HACKER_BOUND.y_offset, HACKER_BOUND.width, HACKER_BOUND.height);
+                    }
+                }
+                
+                //health
+                c.strokeStyle = "red";
+                c.fillStyle = "red";
+                c.strokeRect(HEALTHX, HEALTHY, HEALTH_WIDTH, HEALTH_HEIGHT);
+                c.fillRect(HEALTHX, HEALTHY, (health / MAX_HEALTH) * HEALTH_WIDTH, HEALTH_HEIGHT);
+
+                //score
+                var meters = (PlayerX/100).toFixed(0);
+                c.fillStyle = "black";
+                c.font = "48px sans-serif";
+                c.fillText(meters + "m", 20, 40)
+
+                
+            }
+        </script>
+    </body>
+</html>
