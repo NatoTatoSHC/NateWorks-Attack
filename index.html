@@ -1,11 +1,14 @@
+<!DOCTYPE html>
 <html>
     <head>
         <title id="tit">prod vers</title>
-    </head>
+    </head>    
     <body style="font-size:25;">
         <script>
+            
             //CONST
             var GROUND_Y = 460;
+            var GROUND_Y_B = 500;
             var YEAR = Date().split(" ")[3];
             var COPY_YEAR = 2025;
 
@@ -31,14 +34,15 @@
             var product = "NateWorks Attack";
             var version = "vAlpha 2.0";
             var snapshot = "Snapshot "+SHORT_YEAR+"w"+WEEK+SNAPEND;
-            var versionName = "The Evvildoers Update";
-            var snapshotName = "The Goal Snapshot";
+            var versionName = "The Inside Update";
+            var snapshotName = "The Inside";
             //location
             var HEALTHX = 1000-280;
             var HEALTHY = 0;
             var HEALTH_WIDTH = 280;
             var HEALTH_HEIGHT = 20;
-            var END_X = 1000;
+            var END_X = 450;
+            var NATEWORKS_X = 500;
             //special cases
             //sizes
             var CANV_WIDTH = 1000;
@@ -50,15 +54,21 @@
             var BUSH_SIZE_FULL = 100;
             var HACKER_WIDTH = 64;
             var HACKER_HEIGHT = 80;
+            var NATEWORKS_SIZE = 200;
+
+            var SWORD_SIZE = 64;
             //speeds
-            var PLAYER_X_SPEED = 4;
-            var PLAYER_Y_ACCEL = 1
+            
+            var PLAYER_Y_ACCEL = 1;
             var PLAYER_JUMP_SPEED = 20;
             var HACKER_X_SPEED = 4;
             
             //animation
             var PLAYER_FRAMES = 6;
             var PLAYER_ANIMATION_SPEED = 3;
+
+            var PLAYER_IDLE_FRAMES = 4;
+            var PLAYER_IDLE_ANIMATION_SPEED = 3;
 
             var HACKER_FRAMES = 5;
             var HACKER_ANIMATION_SPEED = 3;
@@ -69,19 +79,78 @@
             var MAX_HACKER_DIST = 600;
             var MAX_HACKERS = 5;
 
+            //boss
+            var BOSS_IMG_SIZE = 100;
+            var BOSS_SIZE = 300;
+
+            var BOSS_LOCS = {
+                Laser: {
+                    Level: 0,
+                    Loc: {
+                        "1": (CANV_WIDTH / 4) - (BOSS_SIZE / 2),
+                        "2":((CANV_WIDTH / 4) * 3) - (BOSS_SIZE / 2)
+                    }
+                }, 
+                Melee: {
+                    Level: GROUND_Y_B - BOSS_SIZE,
+                    Loc: (CANV_WIDTH / 4) - (BOSS_SIZE / 2)
+                },
+                Spawning: {
+                    Level: 0,
+                    Loc: (CANV_WIDTH / 2) - (BOSS_SIZE / 2)
+                }
+            };
+
+            var BOSS_IDLE_FRAMES = 4;
+            var BOSS_FRAMES_FOR_ROW_DEATH = 10;
+            var BOSS_DEATH_FRAMES = 14;
+            var BOSS_Death_START_ROW = 7;
+            var BOSS_MAIN_START_ROW = 0;
+            var BOSS_ANI_SPEED = 6;
+
+
+            var BOSS_MAX_HEALTH = 1000;
+            var BOSS_SPEED = 5;
+
+            var BossModes = {
+                Protected: {
+                    Laser: 0,
+                    Spawning: 1
+                },
+                Unprotected: {
+                    Laser: 2,
+                    Spawning: 3,
+                    Melee: 4,
+                    Dead: 5
+                },
+                isProtected: true
+            };
+
+            
+
             //bound
             var PLAYER_BOUND = {
                 x_offset: 45,
                 y_offset: 12.5,
                 width: 30,
                 height: 61.5
-            }
+            };
             var HACKER_BOUND = {
                 x_offset: 12.5,
                 y_offset: 0,
                 width: 37.5,
                 height: 80
-            }
+            };
+            var NATEWORKS_DOOR_BOUND = {
+                x_offset: 31.25 * 2,
+                y_offset: 75 * 2,
+                width: 37.5 * 2,
+                height: 25 * 2
+            };
+            //gamemodes
+            var PLAY = 0;
+            var GAME_OVER = 1;
+            var BOSS = 2;
 
             //SETUP
             //site
@@ -91,6 +160,9 @@
             //vars
             var PlayerX = 150;
             var PlayerY = GROUND_Y - Player_Height;
+            var PlayerBX = 150;
+            var PlayerBY = GROUND_Y_B - Player_Height;
+            var PlayerCenterX = PlayerX + (Player_Width/2);
             var HackerX = 1000;
             var HackerY = GROUND_Y - HACKER_HEIGHT;
             var ticks = 0;
@@ -99,9 +171,45 @@
             var isJumping = false;
             var isInAir = false;
             var cameraX = 0;
+            var cameraBX = 0;
             var isSnapshot = true;
             var hitboxes = false;
             var health = MAX_HEALTH;
+            var game_mode = PLAY;
+            var timeSensing = false;
+
+
+
+            var boss_health = BOSS_MAX_HEALTH;
+            var bossFrame = 0;
+            var bossDeathRow = 0;
+            var bossDeathColumn = 0;
+            var bossAni = {
+                startsRow: {
+                    death: 7
+                },
+                row: 0,
+                column: 0,
+                frame: 0
+            };
+            var bossIsDieing = false;
+            var bossHasDied = false;
+            var bossDeathDone = false;
+            var BossX = 150;
+            var BossMode = BossModes.Protected.Laser;
+            var bossMove = "main";
+            var BossY = 0;
+
+            var movement = {
+                isMoving: false,
+                direction: "left",
+                image: {
+                    image: new Image(),
+                    frame: 0
+                }
+            };
+            var PLAYER_X_SPEED = 4;
+            var playerIdleFrame = 0;
 
             var updateuse = "";
             var updateusename = "";
@@ -110,7 +218,7 @@
                 updateusename = versionName;
             } else {
                 updateuse = snapshot;
-                updateusename = snapshotName
+                updateusename = snapshotName;
             }
             document.getElementById("tit").innerHTML = product + " " + updateuse;
             
@@ -146,6 +254,23 @@
             hackimg.src = "hacker.png";
             var buildimg = new Image();
             buildimg.src = "nateworks.png";
+            var bossbg = new Image();
+            bossbg.src = "Bossbg.png";
+            var swordleft = new Image();
+            swordleft.src = "sword-.png";
+            var swordright = new Image();
+            swordright.src = "sword+.png";
+            var playerleft = new Image();
+            playerleft.src = "walkOpp.png";
+            var playeridleimg = new Image();
+            playeridleimg.src = "idle/idle.png";
+            var laserimg = new Image();
+            laserimg.src = "boss/laser.png";
+            var bossimg = new Image();
+            bossimg.src = "boss/boss.png";
+            
+            var stepsound = new Audio();
+            stepsound.src = "step.wav";
 
             
             var title = document.createElement("h1");
@@ -165,6 +290,13 @@
             window.addEventListener("load", start);
             window.addEventListener("keydown", keyDown);
             window.addEventListener("keyup", keyUp);
+            canvas.addEventListener("touchstart", function() {
+                isJumping = true
+            });
+            canvas.addEventListener("click", function() {
+                bossHasDied = true;
+                bossIsDieing = true;
+            });
 
             //jump
             function keyDown(event) {
@@ -176,10 +308,32 @@
                 } else if (event.keyCode == 72 && !hitboxes) {
                     hitboxes = true;
                 }
+                if (event.keyCode == 37 || event.keyCode == 65) {
+                    movement.isMoving = true;
+                    movement.direction = "left";
+                } else if (event.keyCode == 39 || event.keyCode == 68) {
+                    movement.isMoving = true;
+                    movement.direction = "right";
+                }
+                if (event.keyCode == 191) {
+                    var cmd = prompt("Yes Master?");
+                    if (cmd == "player.fillHealth();") {
+                        health = MAX_HEALTH;
+                    } else if (cmd == "player.tpM();") {
+                        var where = prompt("To Where In Meters");
+                        PlayerX = parseInt(where) * 100;
+                    } else if (cmd == "player.tpP();") {
+                        var where = prompt("To Where In Pixels");
+                        PlayerX = parseInt(where);
+                    }
+                }
             }
             function keyUp(event) {
                 if (event.keyCode == 32) {
                     isJumping = false;
+                }
+                if (event.keyCode == 37 || event.keyCode == 65 || event.keyCode == 39 || event.keyCode == 68) {
+                    movement.isMoving = false;
                 }
             }
 
@@ -189,18 +343,39 @@
             }
             //MAIN
             function mainloop() {
-                update();
-                draw();
+                if (game_mode == PLAY) {
+                    update();
+                    draw();
+                } else if (game_mode == GAME_OVER){
+                    drawOver();
+                } else if (game_mode == BOSS) {
+                    updateBoss();
+                    drawBoss();
+                }
                 window.requestAnimationFrame(mainloop);
             }
+            var eldentime = 0;
+            var fpscounter = 0;
+            var fps = 0;
             //UPDATE
             function update() {
+                fpscounter += 1;
+                if (!timeSensing) {
+                    eldentime = new Date().getSeconds();
+                    timeSensing = true;
+                }
+                if (eldentime + 1 == new Date().getSeconds()) {
+                    timeSensing = false;
+                    fps = fpscounter;
+                    fpscounter = 0;
+                }
+                //die
                 if (health <= 0) {
-                    return undefined;
+                    game_mode = GAME_OVER;
                 }
                 //player
+                PlayerCenterX = PlayerX + (Player_Width/2);
                 PlayerX += PLAYER_X_SPEED;
-                console.log(PlayerX);
                 PlayerY += PLAYER_Y_SPEED;
                 //animation
                 ticks += 1;
@@ -240,6 +415,11 @@
                 }
 
                 //colide
+                if ((PlayerCenterX > (NATEWORKS_X*100 + 10))) {
+                    game_mode = BOSS;
+                    health = MAX_HEALTH;
+                }
+
                 updateHackers();
                 function updateHackers() {
                     for(var i = 0; i < hackers.length; i++) {
@@ -307,7 +487,11 @@
                     c.drawImage(bushimg, 0, 0, BUSH_SIZE, BUSH_SIZE, bushes[i].x - cameraX, GROUND_Y - bushes[0].y, BUSH_SIZE_FULL, BUSH_SIZE_FULL);
                 }
                 //nateworks
-                //c.drawImage(buildimg, 0, 0, 32, 32, 0-cameraX, GROUND_Y-200, 200, 200)
+                c.drawImage(buildimg, 0, 0, 32, 32, (NATEWORKS_X * 100)-cameraX, GROUND_Y-NATEWORKS_SIZE, NATEWORKS_SIZE, NATEWORKS_SIZE);
+                if (hitboxes) {
+                    c.strokeStyle = "blue";
+                    c.strokeRect((NATEWORKS_X * 100)  + NATEWORKS_DOOR_BOUND.x_offset - cameraX, GROUND_Y - NATEWORKS_SIZE + NATEWORKS_DOOR_BOUND.y_offset, NATEWORKS_DOOR_BOUND.width, NATEWORKS_DOOR_BOUND.height);
+                }
                 //player
                 c.drawImage(playersheet, playerFrame * 50, 0, 50, 37, PlayerX - cameraX, PlayerY, Player_Width, Player_Height);
                 if (hitboxes) {
@@ -335,7 +519,207 @@
                 c.font = "48px sans-serif";
                 c.fillText(meters + "m", 20, 40)
 
+                //fps
+                c.font = "24px sans-serif";
+                c.fillText(fps+"\nfps", 20, 96);
+
+                c.fillStyle = "red"
+                if (hitboxes) {
+                c.fillRect(PlayerCenterX-cameraX, 0, 2, 500);
+                }
+
+            }
+            function drawOver() {
+                c.fillStyle = "black";
+                c.font = "96px sans-serif";
+                c.fillText("GAME OVER", (CANV_WIDTH/2)-(9*30), (CANV_HEIGHT/2)+48);
+            }
+            function updateBoss() {
+                fpscounter += 1;
+                if (!timeSensing) {
+                    eldentime = new Date().getSeconds();
+                    timeSensing = true;
+                }
+                if (eldentime + 1 == new Date().getSeconds()) {
+                    timeSensing = false;
+                    fps = fpscounter;
+                    fpscounter = 0;
+                }
+
+                ticks += 1;
+                //player
+                if (movement.isMoving) {
+                    if (movement.direction == "right" && PlayerBX <= CANV_WIDTH - Player_Width + 25) {
+                        PlayerBX += PLAYER_X_SPEED;
+                    } else if (movement.direction == "left" && PlayerBX >= -25) {
+                        PlayerBX -= PLAYER_X_SPEED;
+                    }
+                }
+
+
+                //jump
+                if (isJumping && !isInAir) {
+                    PLAYER_Y_SPEED = -PLAYER_JUMP_SPEED;
+                    isInAir = true;
+                }
+                PlayerBY += PLAYER_Y_SPEED;
+                animate(movement.isMoving, movement.direction);
+
+                //boss
+                if (bossHasDied == true) {
+                    bossMove = "die";
+                }
+                function die() {
+                    if ((ticks % BOSS_ANI_SPEED) == 0 && bossIsDieing == true && !bossDeathDone) {
+                        bossFrame += 1;
+                        bossDeathColumn += 1;
+                        if ((bossFrame % BOSS_DEATH_FRAMES) == 0) {
+                            bossFrame = 0;
+                            bossDeathColumn = 0;
+                            bossDeathDone = true;
+                            bossIsDieing = false;
+                        }
+                        bossDeathRow = Math.floor(bossFrame / BOSS_FRAMES_FOR_ROW_DEATH);
+                        if ((bossDeathColumn % BOSS_FRAMES_FOR_ROW_DEATH) == 0) {
+                            bossDeathColumn = 0;
+                        }
+                    }
+                }
+                function main() {
+                    if ((ticks % BOSS_ANI_SPEED) == 0 && bossMove == "main") {
+                        bossFrame += 1;
+                        if ((bossFrame % BOSS_IDLE_FRAMES) == 0) {
+                            bossFrame = 0;
+                        }
+                    }
+                }
+                main();
+                die();
+
+                //boss AI
+                if(BossMode = BossModes.Protected.Laser) {
+                }
+                var newcoords = goTo(BossX, BossY, BOSS_LOCS.Laser.Level, BOSS_LOCS.Laser.Level, BOSS_SPEED);
+                BossX = newcoords[0];
+                BossY = newcoords[1];
+            
+                //gravity
+                PLAYER_Y_SPEED += PLAYER_Y_ACCEL;
+                if (PlayerBY > (GROUND_Y_B - Player_Height)) {
+                    PlayerBY = GROUND_Y_B - Player_Height;
+                    PLAYER_Y_SPEED = 0;
+                    isInAir = false;
+                }
+            }
+            function animate(moving, way) {
+                if (!moving) {
+                    //animation
+                    if ((ticks % PLAYER_IDLE_ANIMATION_SPEED) == 0) {
+                        playerIdleFrame += 1;
+                        if((playerIdleFrame % PLAYER_IDLE_FRAMES) == 0) {
+                            playerIdleFrame = 0;
+                        }
+                    }
+                    movement.image.image = playeridleimg;
+                    movement.image.frame = playerIdleFrame;
+                } else {
+                    if ((ticks % PLAYER_ANIMATION_SPEED) == 0) {
+                        playerFrame += 1;
+                        if((playerFrame % PLAYER_FRAMES) == 0) {
+                            playerFrame = 0;
+                        }
+                    }
+                    if (way == "left") {
+                        movement.image.image = playerleft;
+                    } else if (way == "right") {
+                        movement.image.image = playersheet;
+                    }
+                    movement.image.frame = playerFrame;
+                }
+            }
+            function drawBoss() {
+                var mainrow = 0;
+                var maincolumn = 0;
+                var mainstartrow = 0;
+                if (bossMove == "main") {
+                    mainstartrow = BOSS_MAIN_START_ROW;
+                    maincolumn = bossFrame;
+                    mainrow = 0;
+                } else if (bossMove == "die") {
+                    mainstartrow = BOSS_Death_START_ROW;
+                    maincolumn = bossDeathColumn;
+                    mainrow = bossDeathRow;
+                }
                 
+                c.drawImage(bossbg, 0, 0);
+               
+                c.drawImage(movement.image.image, movement.image.frame * 50, 0, 50, 37, PlayerBX, PlayerBY, Player_Width, Player_Height);
+                if (bossDeathDone) {
+                } else {
+                    c.drawImage(bossimg, maincolumn * BOSS_IMG_SIZE, (mainstartrow + mainrow) * BOSS_IMG_SIZE, BOSS_IMG_SIZE, BOSS_IMG_SIZE, BossX, 0, BOSS_SIZE, BOSS_SIZE);
+                }
+                c.fillStyle = "red";
+                c.strokeStyle = "red";
+                c.strokeRect(250, 30, 500, 20);
+                c.fillRect(250, 30, (boss_health / BOSS_MAX_HEALTH) * 500, 20)
+
+                c.fillStyle = "black";
+                c.font = "24px sans-serif"
+                c.fillText("STONE MECHA", 400, 24);
+
+                //health
+                c.strokeStyle = "red";
+                c.fillStyle = "red";
+                c.strokeRect(HEALTHX, HEALTHY, HEALTH_WIDTH, HEALTH_HEIGHT);
+                c.fillRect(HEALTHX, HEALTHY, (health / MAX_HEALTH) * HEALTH_WIDTH, HEALTH_HEIGHT);
+
+                //fps
+                c.fillStyle = "black";
+                c.font = "24px sans-serif";
+                 c.fillText(fps+"\nfps", 20, 96);
+            } //`rgb(125, 249, 255)``rgb(100, 149, 237)`
+
+
+
+
+
+
+
+
+            function laser(outercolor, innercolor, fromX, fromY, toX, toY) {
+                c.strokeStyle = outercolor;
+                c.lineWidth = 20;
+                c.beginPath();
+                c.moveTo(fromX,fromY);
+                c.lineTo(toX, toY);
+                c.stroke();
+                c.strokeStyle = innercolor;
+                c.lineWidth = 5;
+                c.beginPath();
+                c.moveTo(fromX,fromY);
+                c.lineTo(toX, toY);
+                c.stroke();
+            }
+
+            function goTo(SX, SY, EX, EY, Speed) {
+                var FX = SX;
+                var FY = SY;
+                if (SX > EX) {
+                    FX -= Speed;
+                } else if (SX < EX) {
+                    FX += Speed;
+                } else {
+                    FX = FX;
+                }
+
+                if (SY > EY) {
+                    FY -= Speed;
+                } else if (SY < EY) {
+                    FY += Speed;
+                } else {
+                    FY = FY;
+                }
+                return [FX, FY];
             }
         </script>
     </body>
