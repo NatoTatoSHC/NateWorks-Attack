@@ -4,7 +4,36 @@
         <title id="tit">prod vers</title>
     </head>    
     <body style="font-size:25;">
+        <h1 id="account" style="font-size:medium; text-align: right; position: static;">Sign Up or Log In</h1>
+        <h1 id="delete" style="color: red; font-size: medium; text-align: right; position:static;">Delete Account</h1>
         <script>
+            
+
+            var account = document.getElementById("account");
+            var del = document.getElementById("delete");
+            if (localStorage.Account == undefined) {
+                del.hidden = true;
+            } else {
+                del.hidden = false;
+            }
+            account.onclick = function() {
+                if (localStorage.getItem("AccountName") == undefined && localStorage.getItem("AccountPrem") == undefined) {
+                    del.hidden = false;
+                    var inname = prompt("Your Account Name");
+                    localStorage.setItem("AccountName", inname);
+                    localStorage.setItem("AccountPrem", "0")
+                    account.innerHTML = localStorage.getItem("Accountname");
+                } else {
+                    del.hidden = false;
+                    account.innerHTML = localStorage.getItem("AccountName");
+                }
+            };
+            del.onclick = function() {
+                localStorage.removeItem("AccountName");
+                localStorage.removeItem("AccountPrem");
+                del.hidden = true;
+                account.innerHTML = "Sign Up or Log In";
+            }
             var newupd = new Image();
             newupd.src = "newup.png";
             //CONST
@@ -37,7 +66,6 @@
             var snapshot = "Snapshot "+SHORT_YEAR+"w"+WEEK+SNAPEND;
             var versionName = "The Inside Update";
             var snapshotName = "The Inside";
-
             
             //location
             var HEALTHX = 1000-280;
@@ -128,6 +156,8 @@
                 },
                 isProtected: true
             };
+
+            var Spiderboss = 0;
 
             
 
@@ -379,18 +409,21 @@
             function drawUpScreen() {
                 c.drawImage(newupd, 250, 125);
             }
+            var speed = 0;
             //UPDATE
             function update() {
+                
                 fpscounter += 1;
                 if (!timeSensing) {
                     eldentime = new Date().getSeconds();
                     timeSensing = true;
                 }
-                if (eldentime + 1 == new Date().getSeconds()) {
+                if (eldentime + 1 <= new Date().getSeconds()) {
                     timeSensing = false;
                     fps = fpscounter;
                     fpscounter = 0;
                 }
+                speed = ((PLAYER_X_SPEED * fps)/100).toFixed(2);
                 //die
                 if (health <= 0) {
                     game_mode = GAME_OVER;
@@ -544,6 +577,8 @@
                 //fps
                 c.font = "24px sans-serif";
                 c.fillText(fps+"\nfps", 20, 96);
+
+                c.fillText(speed+" m/s", 20, 96+24);
 
                 c.fillStyle = "red"
                 if (hitboxes) {
