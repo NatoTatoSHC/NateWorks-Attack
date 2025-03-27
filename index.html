@@ -5,7 +5,8 @@
     </head>    
     <body style="font-size:25;">
         <script>
-            
+            var newupd = new Image();
+            newupd.src = "newup.png";
             //CONST
             var GROUND_Y = 460;
             var GROUND_Y_B = 500;
@@ -36,6 +37,8 @@
             var snapshot = "Snapshot "+SHORT_YEAR+"w"+WEEK+SNAPEND;
             var versionName = "The Inside Update";
             var snapshotName = "The Inside";
+
+            
             //location
             var HEALTHX = 1000-280;
             var HEALTHY = 0;
@@ -269,6 +272,7 @@
             var bossimg = new Image();
             bossimg.src = "boss/boss.png";
             
+            
             var stepsound = new Audio();
             stepsound.src = "step.wav";
 
@@ -285,6 +289,9 @@
             versdis.innerHTML = updateuse + "&#2;|&#2;copyright&copy;"+COPY_YEAR+" "+company+"&#2;|&#2;"+updateusename;
             versdis.style = "font-size:15;";
             document.body.appendChild(versdis);
+
+            var isOnUpdateScreen = false;
+            
             
 
             window.addEventListener("load", start);
@@ -325,7 +332,13 @@
                     } else if (cmd == "player.tpP();") {
                         var where = prompt("To Where In Pixels");
                         PlayerX = parseInt(where);
+                    } else if (cmd == "local.noUpdate();") {
+                        localStorage.removeItem("s25w13b");
+                        alert("You Have Not Seen Update");
                     }
+                }
+                if (event.keyCode == 27) {
+                    isOnUpdateScreen = false;
                 }
             }
             function keyUp(event) {
@@ -340,10 +353,15 @@
             //start
             function start() {
                 window.requestAnimationFrame(mainloop);
+                if (localStorage.s25w13b == undefined || localStorage.s25w13b == false) {
+                    drawUpScreen();
+                    isOnUpdateScreen = true;
+                    localStorage.s25w13b = true;
+                }
             }
             //MAIN
             function mainloop() {
-                if (game_mode == PLAY) {
+                if (game_mode == PLAY && !isOnUpdateScreen) {
                     update();
                     draw();
                 } else if (game_mode == GAME_OVER){
@@ -357,6 +375,10 @@
             var eldentime = 0;
             var fpscounter = 0;
             var fps = 0;
+
+            function drawUpScreen() {
+                c.drawImage(newupd, 250, 125);
+            }
             //UPDATE
             function update() {
                 fpscounter += 1;
