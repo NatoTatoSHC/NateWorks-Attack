@@ -1,0 +1,19 @@
+Type / to open console.
+
+Player Commands:
+"player.fillHealth();": Fills Health to max
+"player.tpM();" Teleports player to desired position in meters
+"player.tpP();" Teleports player to desired position in pixels
+"player.perish();" Kills you
+
+Local Commands:
+"local.noUpdate();" Make the local storage think you haven't seen the update popup yet
+
+Game Commands:
+"game.toggleFPSMode();" Changes the FPS mode to Edit (is able to be changed) or Intraval is 60 FPS
+"game.setFPS();" SEt FPS to chosen number if on Edit mode
+
+Tools Commands:
+"tools.convertToBinary();" Converts inputed number to binary (DO NOT USE IF YOU ARE SMART)
+"tools.freePrem();" Redirects you to instructions on how to ge free premium
+"tools.toSite();" Redirects you to the inputted URL

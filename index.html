@@ -14,13 +14,17 @@
         "><img src='coin.png' width="25"/> 5 Million</h1>
         <div id="ad1" onclick="location.assign('https://benco.github.io');" style="position: absolute;right: 75px; top: 100px; width: 200px; height: 200px; background-image:  url('ads/benco.png');"><p style="color:red; margin: 0;">AD</p><div style="width: 100%; background-color: rgba(255, 255, 255, .5); position: absolute; bottom: 0;"><h1>BenCo.</h1></div></div>
         <div id="ad2" onclick="location.assign('https://saminc.github.io');" style="position: absolute;right: 75px; top: 350px; width: 200px; height: 200px; background-image:  url('ads/saminc.png');"><p style="color:red; margin: 0;">AD</p><div style="width: 100%; background-color: rgba(255, 255, 255, .5); position: absolute; bottom: 0;"><h1>Sam Inc.</h1></div></div>
+        <p id="cheshe" style="position: absolute; bottom: 0; right: 0;" onclick="location.assign('cheatsheet.txt')">Cheat Sheet</p>
         
         <script>
+            document.getElementById("cheshe").hidden = true;
             localStorage.removeItem("s25w13b");
             function prembgY() {
+                document.getElementById("cheshe").hidden = false;
                 document.body.style = "font-size:25; background-image: url('prembg.png'); background-size: cover;"
             }
             function prembgN() {
+                document.getElementById("cheshe").hidden = true;
                 document.body.style = "font-size: 25;";
             }
             var ad1 = document.getElementById("ad1");
@@ -219,7 +223,7 @@
             var company = "NateWorks&reg;";
             var product = "NateWorks Attack&trade;";
             
-            var version = "vAlpha 3.0";
+            var version = "vAlpha 3.2";
             var snapshot = "Snapshot "+SHORT_YEAR+"w"+WEEK+SNAPEND;
             var versionName = "The Small But Mighty Update";
             var snapshotName = "The Inside";
@@ -520,9 +524,13 @@
             canvas.addEventListener("touchend", function() {
                 isJumping = false;
             });
-            canvas.addEventListener("click", function() {
-                bossHasDied = true;
-                bossIsDieing = true;
+            "350 650 310 610"
+            canvas.addEventListener("click", function(event) {
+                if ((event.x >= 350 && event.x <= 650) && (event.y >= 410 && event.y <= 510) && game_mode == GAME_OVER) {
+                    PlayerX = 150;
+                    game_mode = PLAY;
+                    health = MAX_HEALTH;
+                }
 
             });
 
@@ -553,9 +561,12 @@
                     } else if (cmd == "player.tpP();") {
                         var where = prompt("To Where In Pixels");
                         PlayerX = parseInt(where);
+                    } else if (cmd == "player.perish();") {
+                        health = 0;
                     } else if (cmd == "local.noUpdate();") {
                         localStorage.removeItem("ALP3d0");
                         alert("You Have Not Seen Update");
+                        location.reload();
                     } else if (cmd == "game.toggleFPSMode();") {
                         if (tickMode == Intra) {
                             tickMode = Edit;
@@ -573,6 +584,9 @@
                         setFPS = 2;
                     } else if (cmd == "tools.freePrem();") {
                         location.assign("freePremium.txt");
+                    } else if (cmd == "tools.toSite();") {
+                        var where = prompt("To what site?");
+                        location.assign(where);
                     }
                 }
                 if (event.keyCode == 27) {
@@ -734,7 +748,7 @@
                     while ((hackers.length < MAX_HACKERS) && !((PlayerX/100).toFixed(0) > END_X)) {
                         var oldhackerX = hackers[hackers.length - 1].x;
                         var newhacker = {
-                            x: oldhackerX + MIN_HACKER_DIST + Math.random() * (MAX_HACKER_DIST - MIN_HACKER_DIST),
+                            x: oldhackerX + (MIN_HACKER_DIST) + Math.random() * ((MAX_HACKER_DIST-(PlayerX/100)) - (MIN_HACKER_DIST)),
                             y: GROUND_Y - HACKER_HEIGHT
                         };
                         hackers.push(newhacker);
@@ -822,9 +836,15 @@
 
             }
             function drawOver() {
+                c.fillStyle = "red";
+                
+                c.fillRect((CANV_WIDTH/2)-150, CANV_HEIGHT/2+60, 300, 100);
                 c.fillStyle = "black";
                 c.font = "96px sans-serif";
                 c.fillText("GAME OVER", (CANV_WIDTH/2)-(9*30), (CANV_HEIGHT/2)+48);
+                c.font = "70px sans-serif";
+                c.fillText("Restart", 350+30, 310+100-35)
+                
             }
             function updateBoss() {
                 fpscounter += 1;
