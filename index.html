@@ -4,36 +4,182 @@
         <title id="tit">prod vers</title>
     </head>    
     <body style="font-size:25;">
-        <h1 id="account" style="font-size:medium; text-align: right; position: static;">Sign Up or Log In</h1>
-        <h1 id="delete" style="color: red; font-size: medium; text-align: right; position:static;">Delete Account</h1>
+        <h1 id="account" style="font-size:medium; text-align: right; position: absolute; right:0;">Sign Up or Log In</h1>
+        <h1 id="delete" style="color: red; font-size: medium; text-align: right; position: absolute; right:0; top: 48px;">Delete Account</h1>
+        <h1 id="prem" style="color: goldenrod; font-size: medium; text-align: right; position:absolute; right:0; top:72px">Get Premium</h1>
+        <h1 style="
+        position: absolute;
+        top:10px;
+        left: 800px;
+        "><img src='coin.png' width="25"/> 5 Million</h1>
+        <div id="ad1" onclick="location.assign('https://benco.github.io');" style="position: absolute;right: 75px; top: 100px; width: 200px; height: 200px; background-image:  url('ads/benco.png');"><p style="color:red; margin: 0;">AD</p><div style="width: 100%; background-color: rgba(255, 255, 255, .5); position: absolute; bottom: 0;"><h1>BenCo.</h1></div></div>
+        <div id="ad2" onclick="location.assign('https://saminc.github.io');" style="position: absolute;right: 75px; top: 350px; width: 200px; height: 200px; background-image:  url('ads/saminc.png');"><p style="color:red; margin: 0;">AD</p><div style="width: 100%; background-color: rgba(255, 255, 255, .5); position: absolute; bottom: 0;"><h1>Sam Inc.</h1></div></div>
+        
         <script>
+            localStorage.removeItem("s25w13b");
+            function prembgY() {
+                document.body.style = "font-size:25; background-image: url('prembg.png'); background-size: cover;"
+            }
+            function prembgN() {
+                document.body.style = "font-size: 25;";
+            }
+            var ad1 = document.getElementById("ad1");
+            var ad2 = document.getElementById("ad2");
             
+            function createAd(imgurl, url, text) {
+                var P = document.createElement("p");
+                P.style = "color: red; margin: 0;";
+                P.innerHTML = "AD";
+                var div = document.createElement("div");
+                div.style = "width: 100%; background-color: rgba(255, 255, 255, .5); position: absolute; bottom:0;";
+                var h2 = document.createElement("h2");
+                h2.innerHTML = text;
+                div.appendChild(h2);
+                return [P, div,  url, "background-image: url('" + imgurl + "')"];
+            }
+            
+            function newAd(adslot) {
+                /*var operagxP = document.createElement("p");
+                operagxP.style = "color: red; margin: 0;";
+                operagxP.innerHTML = "AD";
+                var operagxdiv = document.createElement("div");
+                operagxdiv.style = "width: 100%; background-color: rgba(255, 255, 255, .5); position: absolute; bottom:0";
+                var operagxh2 = document.createElement("h2");
+                operagxh2.innerHTML = "Opera GX";
+                operagxdiv.appendChild(operagxh2);
 
+                var tmobileP = document.createElement("p");
+                tmobileP.style = "color: red; margin: 0;";
+                tmobileP.innerHTML = "AD";
+                var tmobilediv = document.createElement("div");
+                tmobilediv.style = "width: 100%; background-color: rgba(255, 255, 255, .5); position: absolute; bottom:0";
+                var tmobileh2 = document.createElement("h2");
+                tmobileh2.innerHTML = "Get IPhone 16 On Us At T-Mobile";
+                tmobilediv.appendChild(tmobileh2);
+
+                var mineP = document.createElement("p");
+                mineP.style = "color: red; margin: 0;";
+                mineP.innerHTML = "AD";
+                var minediv = document.createElement("div");
+                minediv.style = "width: 100%; background-color: rgba(255, 255, 255, .5); position: absolute; bottom:0";
+                var mineh2 = document.createElement("h2");
+                mineh2.innerHTML = "Play Minecraft for $0";
+                minediv.appendChild(mineh2);
+
+                var shellP = document.createElement("p");
+                shellP.style = "color: red; margin: 0;";
+                shellP.innerHTML = "AD";
+                var shelldiv = document.createElement("div");
+                shelldiv.style = "width: 100%; background-color: rgba(255, 255, 255, .5); position: absolute; bottom: 0;";
+                var shellh2 = document.createElement("h2");
+                shellh2.innerHTML = "Play Fortnite but Better Online!";
+                shelldiv.appendChild(shellh2);
+
+                var atatinf = createAd("background-image: url('ads/at&t.png');", "https://www.att.com", "Connecting People To Greater Possibilities");
+                var edjoinf = createAd("background-image: url('ads/edjo.png');", "https://www.edwardjones.com", "Making Sense of Investing");
+*/
+                var ads = {
+                    "BenCo": createAd("ads/benco.png", "https://benco.github.io", "BenCo."),
+                    "SamInc": createAd("ads/saminc.png", "https://saminc.github.io", "Sam Inc.")
+                };
+                var laval = ads[Object.keys(ads)[Math.floor(Math.random() * Object.keys(ads).length)]];
+                //adslot.addEventListener("click", location.assign(laval[2]));
+                adslot.onclick = function() {
+                    location.assign(laval[2]);
+                }
+                adslot.innerHTML = "";
+                adslot.appendChild(laval[0]);
+                adslot.appendChild(laval[1]);
+                if (adslot.id == "ad1") {
+                    adslot.style = "position: absolute;right: 75px; top: 100px; width: 200px; height: 200px;" + laval[3];
+                } else if (adslot.id == "ad2") {
+                    adslot.style = "position: absolute; right:75px; top:350px;width: 200px; height: 200px;" + laval[3];
+                }
+                
+                
+            }
+            function adsOff() {
+                ad1.hidden = true;
+                ad2.hidden = true;
+            }
+            function adsOn() {
+                ad1.hidden = false;
+                ad2.hidden = false;
+            }
+
+            adsOn();
             var account = document.getElementById("account");
             var del = document.getElementById("delete");
+            var isSignedIn = false;
+            var prem = document.getElementById("prem");
             if (localStorage.Account == undefined) {
                 del.hidden = true;
+                prem.hidden = true;
             } else {
                 del.hidden = false;
+                prem.hidden = false;
             }
             account.onclick = function() {
+                prem.hidden = false;
                 if (localStorage.getItem("AccountName") == undefined && localStorage.getItem("AccountPrem") == undefined) {
                     del.hidden = false;
                     var inname = prompt("Your Account Name");
                     localStorage.setItem("AccountName", inname);
                     localStorage.setItem("AccountPrem", "0")
-                    account.innerHTML = localStorage.getItem("Accountname");
+                    account.innerHTML = localStorage.getItem("AccountName");
+                    isSignedIn = true;
                 } else {
                     del.hidden = false;
                     account.innerHTML = localStorage.getItem("AccountName");
+                    isSignedIn = true;
+                    if (localStorage.getItem("AccountPrem") == "1") {
+                        account.style = "font-size:medium; text-align: right; position: absolute; right:0; color: goldenrod;";
+                        prem.innerHTML = "Premium!";
+                        adsOff();
+                        prembgY();
+                    }
                 }
             };
             del.onclick = function() {
                 localStorage.removeItem("AccountName");
                 localStorage.removeItem("AccountPrem");
                 del.hidden = true;
+                prem.hidden = true;
+                isSignedIn = false;
+                adsOn();
+                prembgN();
                 account.innerHTML = "Sign Up or Log In";
-            }
+                account.style = "font-size:medium; text-align: right; position: absolute; right:0;";
+                prem.innerHTML = "Get Premium";
+                num = "";
+                ver = "";
+            };
+            var credcard = new RegExp("\d{4}-\d{4}-\d{4}-\d{4}");
+            var regex = /\d{4}-\d{4}-\d{4}-\d{4}/;
+            prem.onclick = function() {
+                if (localStorage.getItem("AccountPrem") == "0") {
+                    var num = prompt("Credit Card Number");
+                    var ver = confirm("Are You Sure You Want To Do This?");
+                    if (ver) {
+                        if (num == "7th=better") { //Secret Code Line
+                            localStorage.setItem("AccountPrem", "1");
+                            prem.innerHTML = "Premium!";
+                            adsOff();
+                            prembgY();
+                            account.style = "font-size:medium; text-align: right; position: absolute; right:0; color:goldenrod;";
+                        } else if (regex.test(num)) {
+                            alert("Making Purchase. Thank you!");
+                            localStorage.setItem("AccountPrem", "1");
+                            prem.innerHTML = "Premium!";
+                            adsOff();
+                            prembgY();
+                            account.style = "font-size:medium; text-align: right; position: absolute; right:0; color:goldenrod;";
+                        } else {
+                            alert("That is not a credit card you son of a gun >:(");
+                        }
+                    }
+                }
+            };
             var newupd = new Image();
             newupd.src = "newup.png";
             //CONST
@@ -57,14 +203,24 @@
             var d= new Date();
             var WEEK = d.getWeek();
             var SHORT_YEAR = YEAR.charAt(2)+YEAR.charAt(3);
-            var SNAPEND = "b";
+            var SNAPEND = "a";
             var MAX_HEALTH = 100;
             //INFO
-            var company = "NateWorks";
-            var product = "NateWorks Attack";
-            var version = "vAlpha 2.0";
+            var song = [
+                "this is the song that never ends",
+                "oh it goes on and on my friend",
+                "some people started singing it not knowing what it was",
+                "and they'll continue singing it forever just because"
+            ];
+            //for (var i = 0; i < i.length * 10; i++) {
+            //    alert(song[i]);
+            //}
+            var company = "NateWorks&reg;";
+            var product = "NateWorks Attack&trade;";
+            
+            var version = "vAlpha 3.0";
             var snapshot = "Snapshot "+SHORT_YEAR+"w"+WEEK+SNAPEND;
-            var versionName = "The Inside Update";
+            var versionName = "The Small But Mighty Update";
             var snapshotName = "The Inside";
             
             //location
@@ -185,12 +341,27 @@
             var GAME_OVER = 1;
             var BOSS = 2;
 
+            var Intra = 0;
+            var Edit = 1;
+
+
+            //sword dir
+            var swordIsFlying = false;
+            var swordDir = "none";
+            var swordStill = 0;
+            var swordLvel = -5;
+            var swordRvel = 5;
+            var swordvelY = 5;
+
             //SETUP
             //site
             
 
             
             //vars
+            var swordvel = swordStill;
+
+
             var PlayerX = 150;
             var PlayerY = GROUND_Y - Player_Height;
             var PlayerBX = 150;
@@ -205,7 +376,7 @@
             var isInAir = false;
             var cameraX = 0;
             var cameraBX = 0;
-            var isSnapshot = true;
+            var isSnapshot = false;
             var hitboxes = false;
             var health = MAX_HEALTH;
             var game_mode = PLAY;
@@ -232,6 +403,15 @@
             var BossMode = BossModes.Protected.Laser;
             var bossMove = "main";
             var BossY = 0;
+
+            //boss bool
+            var bossisChanging = false;
+            //boss int
+            var bossPoint = [0, 0];
+
+
+            var tickMode = Intra;
+            var setFPS = 60;
 
             var movement = {
                 isMoving: false,
@@ -290,9 +470,12 @@
             var bossbg = new Image();
             bossbg.src = "Bossbg.png";
             var swordleft = new Image();
-            swordleft.src = "sword-.png";
-            var swordright = new Image();
-            swordright.src = "sword+.png";
+            var swords = {
+                "left": new Image(),
+                "right": new Image()
+            };
+            swords["left"].src = "sword-.png";
+            swords["right"].src = "sword+.png";
             var playerleft = new Image();
             playerleft.src = "walkOpp.png";
             var playeridleimg = new Image();
@@ -301,6 +484,8 @@
             laserimg.src = "boss/laser.png";
             var bossimg = new Image();
             bossimg.src = "boss/boss.png";
+
+            
             
             
             var stepsound = new Audio();
@@ -309,6 +494,7 @@
             
             var title = document.createElement("h1");
             title.innerHTML = product;
+            
             document.body.appendChild(title);
             var canvas = document.createElement("canvas");
             canvas.width = CANV_WIDTH;
@@ -316,8 +502,8 @@
             document.body.appendChild(canvas);
             var c = canvas.getContext("2d");
             var versdis = document.createElement("p");
-            versdis.innerHTML = updateuse + "&#2;|&#2;copyright&copy;"+COPY_YEAR+" "+company+"&#2;|&#2;"+updateusename;
-            versdis.style = "font-size:15;";
+            versdis.innerHTML = updateuse + "&#9;|&#9;copyright&copy;"+COPY_YEAR+" "+company+"&#9;|&#9;"+updateusename;
+
             document.body.appendChild(versdis);
 
             var isOnUpdateScreen = false;
@@ -330,9 +516,13 @@
             canvas.addEventListener("touchstart", function() {
                 isJumping = true
             });
+            canvas.addEventListener("touchend", function() {
+                isJumping = false;
+            });
             canvas.addEventListener("click", function() {
                 bossHasDied = true;
                 bossIsDieing = true;
+
             });
 
             //jump
@@ -363,12 +553,33 @@
                         var where = prompt("To Where In Pixels");
                         PlayerX = parseInt(where);
                     } else if (cmd == "local.noUpdate();") {
-                        localStorage.removeItem("s25w13b");
+                        localStorage.removeItem("ALP3d0");
                         alert("You Have Not Seen Update");
+                    } else if (cmd == "game.toggleFPSMode();") {
+                        if (tickMode == Intra) {
+                            tickMode = Edit;
+                        } else {
+                            tickMode = Intra;
+                        }
+                        alert("Toggled");
+                    } else if (cmd == "game.setFPS();") {
+                        var what = prompt("Set To What?");
+                        setFPS = parseInt(what);
+                    } else if (cmd == "tools.convertToBinary();") {
+                        var what = prompt("Number, you psycopath >:(");
+                        alert(parseInt(what).toString(2));
+                        tickMode = Edit;
+                        setFPS = 2;
+                    } else if (cmd == "tools.freePrem();") {
+                        location.assign("freePremium.txt");
                     }
                 }
                 if (event.keyCode == 27) {
                     isOnUpdateScreen = false;
+                }
+                if (event.keyCode == 88) {
+                    swordIsFlying = true;
+                    swordDir = movement.direction;
                 }
             }
             function keyUp(event) {
@@ -383,13 +594,20 @@
             //start
             function start() {
                 window.requestAnimationFrame(mainloop);
-                if (localStorage.s25w13b == undefined || localStorage.s25w13b == false) {
+                window.setTimeout(adChange, 0);
+                if (localStorage.getItem("ALP3d0") == undefined || localStorage.getItem("ALP3d0") == false) {
                     drawUpScreen();
                     isOnUpdateScreen = true;
-                    localStorage.s25w13b = true;
+                    localStorage.ALP3d0 = true;
                 }
             }
             //MAIN
+            
+            function adChange() {
+                newAd(ad1);
+                newAd(ad2);
+                window.setTimeout(adChange, 1000*60);
+            }
             function mainloop() {
                 if (game_mode == PLAY && !isOnUpdateScreen) {
                     update();
@@ -400,18 +618,30 @@
                     updateBoss();
                     drawBoss();
                 }
-                window.requestAnimationFrame(mainloop);
+                if (tickMode == Edit) {
+                    window.setTimeout(mainloop, 1000/setFPS);
+                } else if (tickMode == Intra) {
+                    window.requestAnimationFrame(mainloop);
+                }
             }
             var eldentime = 0;
             var fpscounter = 0;
             var fps = 0;
+            var eldping = 0;
+            var ping = 0;
 
             function drawUpScreen() {
+                c.fillStyle = "black";
+                c.font = "24px sans-serif";
+                c.fillText("Esc to Exit", 250, 125-24);
                 c.drawImage(newupd, 250, 125);
             }
             var speed = 0;
             //UPDATE
             function update() {
+                
+                ping = Math.floor(performance.now() - eldping);
+                eldping = performance.now();
                 
                 fpscounter += 1;
                 if (!timeSensing) {
@@ -420,7 +650,11 @@
                 }
                 if (eldentime + 1 <= new Date().getSeconds()) {
                     timeSensing = false;
-                    fps = fpscounter;
+                    if (tickMode == Intra) {
+                        fps = fpscounter;
+                    } else if (tickMode == Edit) {
+                        fps = setFPS;
+                    }
                     fpscounter = 0;
                 }
                 speed = ((PLAYER_X_SPEED * fps)/100).toFixed(2);
@@ -578,7 +812,7 @@
                 c.font = "24px sans-serif";
                 c.fillText(fps+"\nfps", 20, 96);
 
-                c.fillText(speed+" m/s", 20, 96+24);
+                c.fillText(ping+" ms", 20, 96+24);
 
                 c.fillStyle = "red"
                 if (hitboxes) {
@@ -610,6 +844,13 @@
                         PlayerBX += PLAYER_X_SPEED;
                     } else if (movement.direction == "left" && PlayerBX >= -25) {
                         PlayerBX -= PLAYER_X_SPEED;
+                    }
+                }
+
+                //throw
+                if (/*player wants to throw sword*/true) {
+                    if (movement.direction == "left") {
+                        
                     }
                 }
 
@@ -654,7 +895,10 @@
                 die();
 
                 //boss AI
-                if(BossMode = BossModes.Protected.Laser) {
+                if (bossisChanging) {
+                    if (BossMode == BossModes.Laser.Protected) {
+                        bossPoint = BOSS_LOCS.Laser.Loc[Math.round(Math.random()*1).toString()]
+                    }
                 }
                 var newcoords = goTo(BossX, BossY, BOSS_LOCS.Laser.Level, BOSS_LOCS.Laser.Level, BOSS_SPEED);
                 BossX = newcoords[0];
@@ -708,6 +952,7 @@
                     mainrow = bossDeathRow;
                 }
                 
+                
                 c.drawImage(bossbg, 0, 0);
                
                 c.drawImage(movement.image.image, movement.image.frame * 50, 0, 50, 37, PlayerBX, PlayerBY, Player_Width, Player_Height);
@@ -734,7 +979,9 @@
                 c.fillStyle = "black";
                 c.font = "24px sans-serif";
                  c.fillText(fps+"\nfps", 20, 96);
+                //laser(`rgb(125, 249, 255)`, `rgb(100, 149, 237)`, BossX+BOSS_SIZE/2, BossY+BOSS_SIZE/2, PlayerBX+Player_Width/2, PlayerBY+Player_Height/2)
             } //`rgb(125, 249, 255)``rgb(100, 149, 237)`
+            
 
 
 

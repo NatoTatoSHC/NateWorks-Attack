@@ -1,0 +1,8 @@
+Open Code by adding "view-source:" before "https://" in address bar.
+Scroll down, past a line with "/\d{4}-\d{4}-\d{4}-\d{4}/" on it, to "prem.onclick = function () {".
+Here, look down a little bit more for a line with "if (num == <secret code here>) {".
+At the end of this line there is some stuff that says "//Secret Code Line" in case you can't find it.
+the suff in between the double quotes after "num ==" is the secret code.
+Enter this into the credit card number spot after signing in and pressing "Get Premium!"
+
+YAY!
