@@ -85,7 +85,8 @@
                 var ads = {
                     "BenCo": createAd("ads/benco.png", "https://benco.github.io", "BenCo."),
                     "SamInc": createAd("ads/saminc.png", "https://saminc.github.io", "Sam Inc."),
-                    "CannedRizz": createAd("ads/canrizz.png", "https://sites.google.com/stagneselementary.org/nateworks/shop", "Get Rizz In a Can Today")
+                    "CannedRizz": createAd("ads/canrizz.png", "https://sites.google.com/stagneselementary.org/nateworks/shop", "Get Rizz In a Can Today"),
+                    "MitchellsGlue": createAd("ads/mitglue.png", "https://sites.google.com/stagneselementary.org/mitchellsglue/home", "Buy Glue From Mitchell's Glue")
                 };
                 var laval = ads[Object.keys(ads)[Math.floor(Math.random() * Object.keys(ads).length)]];
                 //adslot.addEventListener("click", location.assign(laval[2]));
@@ -262,6 +263,9 @@
             var PLAYER_IDLE_FRAMES = 4;
             var PLAYER_IDLE_ANIMATION_SPEED = 3;
 
+            var PLAYER_ATTACK1_FRAMES = 5;
+            var PLAYER_ATTACK1_SPEED = 3;
+
             var HACKER_FRAMES = 5;
             var HACKER_ANIMATION_SPEED = 3;
 
@@ -274,10 +278,16 @@
             //boss
             var BOSS_IMG_SIZE = 100;
             var BOSS_SIZE = 300;
+            var BOSS_BOUND = {
+                x_offset: 100,
+                y_offset: 100,
+                width: 100,
+                height: 100
+            };
 
             var BOSS_LOCS = {
                 Laser: {
-                    Level: 0,
+                    Level: 50,
                     Loc: {
                         "1": (CANV_WIDTH / 4) - (BOSS_SIZE / 2),
                         "2":((CANV_WIDTH / 4) * 3) - (BOSS_SIZE / 2)
@@ -288,7 +298,7 @@
                     Loc: (CANV_WIDTH / 4) - (BOSS_SIZE / 2)
                 },
                 Spawning: {
-                    Level: 0,
+                    Level: 50,
                     Loc: (CANV_WIDTH / 2) - (BOSS_SIZE / 2)
                 }
             };
@@ -300,9 +310,59 @@
             var BOSS_MAIN_START_ROW = 0;
             var BOSS_ANI_SPEED = 6;
 
+            var BOSS_LASER_FRAMES = 9;
+            var BOSS_LASER_SPEED = 10;
+
 
             var BOSS_MAX_HEALTH = 1000;
             var BOSS_SPEED = 5;
+            var bossMaxMinis = 2;
+            var outHenchHeight = 44*1.5;
+            var outHenchWidth = 65*1.5;
+            var outHenchFrames = 4;
+            //var outHenchFrame = 0;
+            var outHenchAniSpeed = 6;
+            var outHenchSpeed = 5;
+            var outhenchbase = {
+                x: 0,
+                y: 0,
+                frame: 0
+            };
+            var OutHench = [];
+            var HenchBulletBase = {
+                lastX: 0,
+                LastY: 0,
+
+            };
+            
+            var atvSpeed = 1;
+            var atvAniSpeed = 9;
+            var atvWalkFrames = 6;
+            var atvDieFrames = 6;
+            var atvAttackFrames = 4;
+            var atvMinisLeft = 2;
+            var MiniBossATV = [
+                {
+                    x: 0,
+                    y: 500-(72*2),
+                    health: 100,
+                    frame: 0,
+                    direction: "right",
+                    image: new Image(),
+                    attackPoint: 0,
+                    distAdd: 100
+                },
+                {
+                    x: CANV_WIDTH-(72*2),
+                    y: 500-(72*2),
+                    health: 100,
+                    frame: 0,
+                    direction: "left",
+                    image: new Image(),
+                    attackPoint: 0,
+                    distAdd: 200
+                }
+            ];
 
             var BossModes = {
                 Protected: {
@@ -351,6 +411,8 @@
 
 
             //sword dir
+            var swordX = 0;
+            var swordY = 0;
             var swordIsFlying = false;
             var swordDir = "none";
             var swordStill = 0;
@@ -393,6 +455,7 @@
             var bossFrame = 0;
             var bossDeathRow = 0;
             var bossDeathColumn = 0;
+            var bossLaserFrame = 0;
             var bossAni = {
                 startsRow: {
                     death: 7
@@ -407,12 +470,12 @@
             var BossX = 150;
             var BossMode = BossModes.Protected.Laser;
             var bossMove = "main";
-            var BossY = 0;
+            var BossY = 50;
 
             //boss bool
             var bossisChanging = false;
             //boss int
-            var bossPoint = [0, 0];
+            var bossPoint = [350, 50];
 
 
             var tickMode = Intra;
@@ -489,6 +552,23 @@
             laserimg.src = "boss/laser.png";
             var bossimg = new Image();
             bossimg.src = "boss/boss.png";
+            var outhenchimg = new Image();
+            outhenchimg.src = "hench/outhench.png";
+            var atvMini = {
+                "left": new Image(),
+                "right": new Image(),
+                "death": new Image(),
+                "attack": new Image()
+            };
+            atvMini["left"].src = "mini/atv/flipwalk.png";
+            atvMini["right"].src = "mini/atv/Walk.png";
+            atvMini["death"].src = "mini/atv/Death.png";
+            atvMini["attack"].src = "mini/atv/Attack3.png";
+
+            MiniBossATV[0].image = atvMini[1];
+            MiniBossATV[1].image = atvMini[0];
+            var playerAttack1Img = new Image();
+            playerAttack1Img.src = "attack/attack1.png";
 
             
             
@@ -530,10 +610,17 @@
                     PlayerX = 150;
                     game_mode = PLAY;
                     health = MAX_HEALTH;
+                    hackers = [{
+                        x: 1000,
+                        y: GROUND_Y-HACKER_HEIGHT
+                    },{
+                        x: 1700,
+                        y: GROUND_Y-HACKER_HEIGHT
+                    }];
                 }
 
             });
-
+            var spamSword = false;
             //jump
             function keyDown(event) {
                 if (event.keyCode == 32) {
@@ -551,6 +638,7 @@
                     movement.isMoving = true;
                     movement.direction = "right";
                 }
+                
                 if (event.keyCode == 191) {
                     var cmd = prompt("Yes Master?");
                     if (cmd == "player.fillHealth();") {
@@ -563,6 +651,8 @@
                         PlayerX = parseInt(where);
                     } else if (cmd == "player.perish();") {
                         health = 0;
+                    } else if (cmd == "player.spamSword();") {
+                        spamSword = true;
                     } else if (cmd == "local.noUpdate();") {
                         localStorage.removeItem("ALP3d0");
                         alert("You Have Not Seen Update");
@@ -587,14 +677,32 @@
                     } else if (cmd == "tools.toSite();") {
                         var where = prompt("To what site?");
                         location.assign(where);
+                    } else if (cmd == "boss.changePhase();") {
+                        var posss = [0, 1]
+                        BossMode = Math.round(Math.random());
+                        //BossMode = 1;
+                        bossisChanging = true;
+
+                    } else if (cmd == "boss.perish();") {
+                        boss_health = 0;
                     }
                 }
                 if (event.keyCode == 27) {
                     isOnUpdateScreen = false;
                 }
-                if (event.keyCode == 88) {
+                if (event.keyCode == 88 && !swordIsFlying) {
+                    swordX = PlayerBX;
+                    swordY = PlayerBY;
                     swordIsFlying = true;
                     swordDir = movement.direction;
+                } else if (event.keyCode == 88 && spamSword) {
+                    swordX = PlayerBX;
+                    swordY = PlayerBY;
+                    swordIsFlying = true;
+                    swordDir = movement.direction;
+                }
+                if (event.keyCode == 90) {
+                    movement.direction = "attack1";
                 }
             }
             function keyUp(event) {
@@ -835,6 +943,22 @@
                 }
 
             }
+            function sidesAreColliding(Obj1_LEFT, Obj1_RIGHT, Obj2_LEFT, Obj2_RIGHT) {
+                if (((Obj1_RIGHT >= Obj2_LEFT) && (Obj1_RIGHT <= Obj2_RIGHT)) || ((Obj1_LEFT >= Obj2_LEFT) && (Obj1_LEFT <= Obj2_RIGHT)) ) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            function objectsCollide(obj1X, obj1Y, obj1W, obj1H, obj2X, obj2Y, obj2W, obj2H) {
+                var PLAYER_LEFT_SIDE = PlayerX+PLAYER_BOUND.x_offset-cameraX;
+                var PLAYER_RIGHT_SIDE = PlayerX+PLAYER_BOUND.x_offset+PLAYER_BOUND.width-cameraX;
+                var HACKER_LEFT_SIDE = HackerX+HACKER_BOUND.x_offset-cameraX;
+                var HACKER_RIGHT_SIDE = HackerX+HACKER_BOUND.x_offset+HACKER_BOUND.width-cameraX;
+                var alongX = sidesAreColliding(obj1X, obj1X+obj1W, obj2X, obj2X+obj2W);
+                var alongY = sidesAreColliding(obj1Y, obj1Y+obj1H, obj2Y, obj2Y+obj2H);
+                return alongX && alongY;
+            }
             function drawOver() {
                 c.fillStyle = "red";
                 
@@ -846,6 +970,15 @@
                 c.fillText("Restart", 350+30, 310+100-35)
                 
             }
+            var swImg = new Image();
+            var hasShot = false;
+            var isShooting = false;
+            var laserAct = false;
+            var playerOldLoco = [0, 0];
+            var showAnyway = false;
+            var madeIt = false;
+            var hasUsedSword = false;
+            var blackness = 0.0;
             function updateBoss() {
                 fpscounter += 1;
                 if (!timeSensing) {
@@ -865,14 +998,73 @@
                         PlayerBX += PLAYER_X_SPEED;
                     } else if (movement.direction == "left" && PlayerBX >= -25) {
                         PlayerBX -= PLAYER_X_SPEED;
+                    } else if (movement.direction == "attack1") {
+
                     }
+                }
+                if (health <= 0) {
+                    game_mode = GAME_OVER;
+                    boss_health = BOSS_MAX_HEALTH;
+                    MiniBossATV = [
+                        {
+                            x: 0,
+                            y: 500-(72*2),
+                            health: 100,
+                            frame: 0,
+                            direction: "right",
+                            image: new Image(),
+                            attackPoint: 0,
+                            distAdd: 100
+                        },
+                        {
+                            x: CANV_WIDTH-(72*2),
+                            y: 500-(72*2),
+                            health: 100,
+                            frame: 0,
+                            direction: "left",
+                            image: new Image(),
+                            attackPoint: 0,
+                            distAdd: 200
+                        }
+                    ];
+                    OutHench = [];
+                    
                 }
 
                 //throw
-                if (/*player wants to throw sword*/true) {
-                    if (movement.direction == "left") {
+                
+                if (swordIsFlying) {
+                    swImg = swords[swordDir];
+                    if (swordDir == "left") {
+                        swordX  += swordLvel;
+                        swordY -= swordvelY;
+                    } else if (swordDir == "right") {
+                        swordX += swordRvel;
+                        swordY -= swordvelY;
+                    }
+                    if ((swordX < -200 || swordX > CANV_WIDTH) || swordY < -200) {
+                        swordIsFlying = false;
                         
                     }
+                    if ((BossMode == 2 || BossMode == 3 || BossMode == 4) && swordIsFlying && objectsCollide(swordX, swordY, 64, 64, BossX+BOSS_BOUND.x_offset, BossY+BOSS_BOUND.y_offset, BOSS_BOUND.width, BOSS_BOUND.height)) {
+                        swordIsFlying = false;
+                        boss_health -= 10;
+                        
+                        
+                    } else if (BossMode in [0, 1, 5] && swordIsFlying && objectsCollide(swordX, swordY, 64, 64, BossX+BOSS_BOUND.x_offset, BossY+BOSS_BOUND.y_offset, BOSS_BOUND.width, BOSS_BOUND.height)) {
+                        swordIsFlying = false;
+                    }
+                    //alert(BossMode);
+                    
+                }
+                if (boss_health <= 0) {
+                    boss_health = 0;
+                    blackness += .1;
+                }
+                if (laserAct && objectsCollide(playerOldLoco[0]-Player_Width, playerOldLoco[1]-Player_Height, Player_Width/2, Player_Height/2, PlayerBX+PLAYER_BOUND.x_offset, PlayerBY+PLAYER_BOUND.y_offset, PLAYER_BOUND.width, PLAYER_BOUND.height)) {
+                    health -= 20;
+                    showAnyway = true;
+                    laserAct = false;
                 }
 
 
@@ -904,6 +1096,31 @@
                         }
                     }
                 }
+                function actLaser() {
+                    laserAct = true;
+                    
+                }
+                function deLaser() {
+                    laserAct = false;
+                    showAnyway = false;
+                }
+                
+                
+
+                function laserAni() {
+                    if ((ticks % BOSS_LASER_SPEED) == 0 && isShooting) {
+                        bossLaserFrame += 1;
+                        if ((bossLaserFrame % BOSS_LASER_FRAMES) == 0) {
+                            bossLaserFrame = 0;
+                            hasShot = true;
+                            
+                            //playerOldLoco = [PlayerBX, PlayerBY];
+                            
+                            isShooting = false;
+                            
+                        }
+                    }
+                }
                 function main() {
                     if ((ticks % BOSS_ANI_SPEED) == 0 && bossMove == "main") {
                         bossFrame += 1;
@@ -914,14 +1131,146 @@
                 }
                 main();
                 die();
+                laserAni();
 
-                //boss AI
-                if (bossisChanging) {
-                    if (BossMode == BossModes.Laser.Protected) {
-                        bossPoint = BOSS_LOCS.Laser.Loc[Math.round(Math.random()*1).toString()]
+                //hench upd
+                updateHenchmen();
+                function henchBullet() {
+                    
+                }
+                function updateHenchmen() {
+                    //animate
+                    for (var i = 0; i < OutHench.length; i++) {
+                        OutHench[i].laser += 1;
+                        if ((OutHench[i].laser % 100) == 0) {
+                            OutHench[i].need2shoot = true;
+                            health -= 1;
+                        }
+                        if ((ticks % outHenchAniSpeed) == 0) {
+                        OutHench[i].frame += 1;
+                            if ((OutHench[i].frame % outHenchFrames) == 0) {
+                                OutHench[i].frame = 0;
+                            }
+                        }
+                        if  (PlayerBX > OutHench[i].x + (OutHench[i].side*100) && OutHench[i].x <= CANV_WIDTH-outHenchWidth) {
+                            OutHench[i].x += outHenchSpeed;
+                        }
+                        if (PlayerBX < OutHench[i].x + (OutHench[i].side*100) && OutHench[i].x >= 0) {
+                            OutHench[i].x -= outHenchSpeed;
+                        }
+                        if (swordIsFlying && objectsCollide(swordX, swordY, 64, 64, OutHench[i].x + (outHenchWidth/4), OutHench[i].y+(outHenchHeight/4), outHenchWidth/2, outHenchHeight/2)) {
+                            OutHench.splice(i);
+                            swordIsFlying = false;
+                        }
                     }
                 }
-                var newcoords = goTo(BossX, BossY, BOSS_LOCS.Laser.Level, BOSS_LOCS.Laser.Level, BOSS_SPEED);
+
+                //miniboss
+                function die() {}
+                function attack() {}
+                var atvsAlive = [];
+                for (var i = 0; i < MiniBossATV.length; i++) {
+                    if (MiniBossATV[i].health > 0) {
+                        atvsAlive.push(MiniBossATV[i])
+                    }
+                    MiniBossATV[i].attackPoint += 1;
+                    MiniBossATV[i].image = atvMini[MiniBossATV[i].direction];
+                    if ((ticks % atvAniSpeed) == 0) {
+                        MiniBossATV[i].frame += 1;
+                        if ((MiniBossATV[i].frame % atvWalkFrames) == 0) {
+                            MiniBossATV[i].frame = 0;
+                        }
+                    }
+                    if  (PlayerBX > MiniBossATV[i].x + MiniBossATV[i].distAdd && MiniBossATV[i].x <= CANV_WIDTH-(72*2)) {
+                        MiniBossATV[i].x += atvSpeed;
+                        MiniBossATV[i].direction = "right";
+                    } else if (PlayerBX < MiniBossATV[i].x - MiniBossATV[i].distAdd && MiniBossATV[i].x >= 0) {
+                        MiniBossATV[i].x -= atvSpeed;
+                        MiniBossATV[i].direction = "left";
+                    } else {
+                        MiniBossATV[i].frame = 0;
+                    }
+                    if (objectsCollide(PlayerBX+PLAYER_BOUND.x_offset, PlayerBY+PLAYER_BOUND.y_offset, PLAYER_BOUND.width, PLAYER_BOUND.height, MiniBossATV[i].x, MiniBossATV[i].y, 72*2, 72*2) && movement.direction == "attack1" && !hasUsedSword) {
+                        MiniBossATV[i].health -= 10;
+                        hasUsedSword = true;
+                    }
+
+                }
+                atvMinisLeft = atvsAlive.length;
+
+                if (atvMinisLeft == 0) {
+                    if (BossMode == BossModes.Protected.Laser) {
+                        BossMode = BossModes.Unprotected.Laser;
+                    } else if (BossMode == BossModes.Protected.Spawning) {
+                        BossMode = BossModes.Unprotected.Spawning;
+                    }
+                }
+                
+                
+
+                //boss AI
+                //bossPoint = [(CANV_WIDTH/2)-(BOSS_SIZE/2), 0];
+                function change() {
+                    BossMode = Math.round(Math.random());
+                    bossisChanging = true;
+                }
+                function bam() {
+                    isShooting = true;
+                    playerOldLoco = [PlayerBX+Player_Width, PlayerBY+Player_Height];
+                    window.setTimeout(actLaser, 1*1000);
+                    window.setTimeout(deLaser, 2*1000);
+                    
+                    window.setTimeout(change, 3*1000);
+                }
+                if (BossX == BOSS_LOCS.Spawning.Loc && bossisChanging && BossMode == BossModes.Protected.Spawning) {
+
+                    madeIt = true;
+                }
+
+                if (madeIt) {
+                    bossisChanging = false;
+                    madeIt = false;
+                    function beaRange() {
+                        var ar1 = .5+Math.random()*1.5;
+                        var ar2 = (.5+Math.random()*1.5)*-1;
+                        var sel = Math.round(Math.random());
+                        if (sel == 0) {
+                            return ar1;
+                        } else if (sel == 1) {
+                            return ar2;
+                        }
+                    }
+                    OutHench.push({
+                        x: BossX,
+                        y: GROUND_Y_B - (Player_Height + 10) - outHenchHeight,
+                        frame: 0,
+                        side: beaRange(),
+                        laser: 0,
+                        need2shoot: false
+                    });
+                    OutHench.push({
+                        x: BossX + BOSS_SIZE - outHenchWidth,
+                        y: GROUND_Y_B - (Player_Height + 10) - outHenchHeight,
+                        frame: 0,
+                        side: beaRange(),
+                        laser: 0,
+                        need2shoot: false
+                    });
+                    window.setTimeout(change, 3*1000);
+                }
+                if (BossMode == BossModes.Protected.Laser && bossisChanging) {
+                    bossPoint = [BOSS_LOCS.Laser.Loc[Math.round(1+Math.random()).toString()], BOSS_LOCS.Laser.Level];
+                    bossisChanging = false;
+                    window.setTimeout(bam, 1000*5);
+                    
+                } else if (BossMode == BossModes.Protected.Spawning && bossisChanging) {
+                    
+                    bossPoint = [BOSS_LOCS.Spawning.Loc, BOSS_LOCS.Laser.Level];
+                    madeIt = false;
+                    
+
+                }
+                var newcoords = goTo(BossX, BossY, bossPoint[0], bossPoint[1], BOSS_SPEED);
                 BossX = newcoords[0];
                 BossY = newcoords[1];
             
@@ -933,8 +1282,23 @@
                     isInAir = false;
                 }
             }
+
             function animate(moving, way) {
-                if (!moving) {
+                if (!moving && movement.direction == "attack1") {
+                    if ((ticks % PLAYER_ATTACK1_SPEED) == 0) {
+                        playerFrame += 1;
+                        if((playerFrame % PLAYER_ATTACK1_FRAMES) == 0) {
+                            playerFrame = 0;
+                            movement.direction = "right";
+                            hasUsedSword = false;
+                            //TO DO: check if player is touching miniboss
+                            
+                        }
+                    }
+                    
+                    movement.image.image = playerAttack1Img;
+                    movement.image.frame = playerFrame;
+                } else if (!moving) {
                     //animation
                     if ((ticks % PLAYER_IDLE_ANIMATION_SPEED) == 0) {
                         playerIdleFrame += 1;
@@ -975,12 +1339,65 @@
                 
                 
                 c.drawImage(bossbg, 0, 0);
-               
+
+                //minibosses
+                for (var i = 0; i<MiniBossATV.length; i++) {
+                    c.drawImage(MiniBossATV[i].image, MiniBossATV[i].frame*72, 0, 72, 72, MiniBossATV[i].x, MiniBossATV[i].y, 72*2, 72*2);
+                    if (hitboxes) {
+                        c.strokeStyle = "blue";
+                        c.strokeRect(MiniBossATV[i].x, MiniBossATV[i].y, 72*2, 72*2);
+                    }
+                }
+
+                //player
                 c.drawImage(movement.image.image, movement.image.frame * 50, 0, 50, 37, PlayerBX, PlayerBY, Player_Width, Player_Height);
+                if (hitboxes) {
+                    c.strokeStyle = "blue";
+                    c.strokeRect(PlayerBX+PLAYER_BOUND.x_offset, PlayerBY+PLAYER_BOUND.y_offset, PLAYER_BOUND.width, PLAYER_BOUND.height);
+                }
+
                 if (bossDeathDone) {
                 } else {
-                    c.drawImage(bossimg, maincolumn * BOSS_IMG_SIZE, (mainstartrow + mainrow) * BOSS_IMG_SIZE, BOSS_IMG_SIZE, BOSS_IMG_SIZE, BossX, 0, BOSS_SIZE, BOSS_SIZE);
+                    c.drawImage(bossimg, maincolumn * BOSS_IMG_SIZE, (mainstartrow + mainrow) * BOSS_IMG_SIZE, BOSS_IMG_SIZE, BOSS_IMG_SIZE, BossX, BossY, BOSS_SIZE, BOSS_SIZE);
+                    if (BossMode in [0, 1]) {
+                        c.fillStyle = `rgba(0, 255, 255, .5)`;
+                        c.beginPath();
+                        c.ellipse(BossX+150, BossY+150, 150, 150, 0, 0, 360);
+                        c.fill();
+                    }
+                    for(var i = 0; i < OutHench.length; i++) {
+                        c.drawImage(outhenchimg, OutHench[i].frame * 65, 0, 65, 44, OutHench[i].x, OutHench[i].y, outHenchWidth, outHenchHeight);
+                        if (OutHench[i].need2shoot) {
+                            c.strokeStyle = "red";
+                            c.lineWidth = 5;
+                            c.beginPath();
+                            c.moveTo(OutHench[i].x+(outHenchWidth/2), OutHench[i].y+(outHenchHeight/2));
+                            c.lineTo(PlayerBX+(Player_Width/2), PlayerBY+(Player_Height/2));
+                            c.stroke();
+                            OutHench[i].need2shoot = false;
+                            c.lineWidth = 1;
+                        }
+                    }
+                    if (hitboxes) {
+                        c.strokeStyle = "blue";
+                        c.strokeRect(BossX+BOSS_BOUND.x_offset, BossY+BOSS_BOUND.y_offset, BOSS_BOUND.width, BOSS_BOUND.height);
+                    }
+                    if (isShooting) {
+                        c.drawImage(laserimg, 0, bossLaserFrame*100, 300, 100, BossX+100, BossY+(BOSS_SIZE/4)-5, 300, 100);
+                    }
+
                 }
+                if (swordIsFlying) {
+                    c.drawImage(swImg, swordX, swordY, 64, 64);
+                    if (hitboxes) {
+                        c.strokeStyle = "blue";
+                        c.strokeRect(swordX, swordY, 64, 64);
+                    }
+                }
+                if (laserAct || showAnyway) {
+                    laser(`rgb(125, 249, 255)`, `rgb(100, 149, 237)`, BossX + (BOSS_SIZE/2), BossY + (BOSS_SIZE/4)+15, playerOldLoco[0], playerOldLoco[1]);
+                }
+                //boss health
                 c.fillStyle = "red";
                 c.strokeStyle = "red";
                 c.strokeRect(250, 30, 500, 20);
@@ -996,10 +1413,27 @@
                 c.strokeRect(HEALTHX, HEALTHY, HEALTH_WIDTH, HEALTH_HEIGHT);
                 c.fillRect(HEALTHX, HEALTHY, (health / MAX_HEALTH) * HEALTH_WIDTH, HEALTH_HEIGHT);
 
+                //mini boss health
+                c.strokeStyle = "blue";
+                c.fillStyle = "blue";
+                c.strokeRect(250, 80, 225, 20);
+                c.fillRect(250, 80, (MiniBossATV[0].health / 100) * 225, 20);
+
+                c.strokeStyle = "blue";
+                c.fillStyle = "blue";
+                c.strokeRect(525, 80, 225, 20);
+                c.fillRect(525, 80, (MiniBossATV[1].health / 100) * 225, 20);
+
                 //fps
                 c.fillStyle = "black";
                 c.font = "24px sans-serif";
-                 c.fillText(fps+"\nfps", 20, 96);
+                c.fillText(fps+"\nfps", 20, 96);
+
+                //blackness
+                c.fillStyle = `rgba(0, 0, 0, ${blackness})`
+                c.fillRect(0, 0, CANV_WIDTH, CANV_HEIGHT);
+
+                
                 //laser(`rgb(125, 249, 255)`, `rgb(100, 149, 237)`, BossX+BOSS_SIZE/2, BossY+BOSS_SIZE/2, PlayerBX+Player_Width/2, PlayerBY+Player_Height/2)
             } //`rgb(125, 249, 255)``rgb(100, 149, 237)`
             
@@ -1012,6 +1446,7 @@
 
 
             function laser(outercolor, innercolor, fromX, fromY, toX, toY) {
+                
                 c.strokeStyle = outercolor;
                 c.lineWidth = 20;
                 c.beginPath();
@@ -1024,6 +1459,7 @@
                 c.moveTo(fromX,fromY);
                 c.lineTo(toX, toY);
                 c.stroke();
+                c.lineWidth = 1;
             }
 
             function goTo(SX, SY, EX, EY, Speed) {

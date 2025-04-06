@@ -5,6 +5,7 @@ Player Commands:
 "player.tpM();" Teleports player to desired position in meters
 "player.tpP();" Teleports player to desired position in pixels
 "player.perish();" Kills you
+"player.spamSword();" Lets you spam your sword
 
 Local Commands:
 "local.noUpdate();" Make the local storage think you haven't seen the update popup yet
@@ -17,3 +18,6 @@ Tools Commands:
 "tools.convertToBinary();" Converts inputed number to binary (DO NOT USE IF YOU ARE SMART)
 "tools.freePrem();" Redirects you to instructions on how to ge free premium
 "tools.toSite();" Redirects you to the inputted URL
+
+Boss Commands:
+"boss.changePhase();" changes the bosses phase;
